@@ -44,4 +44,4 @@ nix run github:nix-community/nixos-anywhere -- \
 
 echo
 echo "Done. Save the detected hardware and the pinned versions in the repo:"
-echo "  git add $DIR/hardware-configuration.nix flake.lock && git commit -m 'Install $HOST' && git push"
+echo "  git add $DIR/settings.nix $DIR/hardware-configuration.nix flake.lock && git commit -m 'Install $HOST' && git push"

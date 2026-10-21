@@ -2,7 +2,7 @@
 # settings.nix — the ONLY file you need to edit before installing.
 # Every value specific to this server lives here; all other files read it.
 # The server's name is the name of this folder (hosts/<name>/).
-# The README explains how to find each value (questions Q1–Q5).
+# The README explains how to find each value (questions Q2–Q5).
 # ---------------------------------------------------------------------------
 {
   # Time zone.
