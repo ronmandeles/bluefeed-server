@@ -27,7 +27,7 @@ pkgs.testers.runNixOSTest {
   name = "server-security";
 
   nodes.server = { lib, ... }: {
-    imports = [ ../configuration.nix ../modules/app.nix ];
+    imports = [ ../modules/base.nix ../modules/app.nix ];
     virtualisation.vlans = [ 1 2 ];
     # The test VM boots without a disk layout or bootloader, and offline.
     boot.loader.grub.enable = lib.mkForce false;

@@ -1,5 +1,5 @@
 {
-  description = "Bluefeed physical server: NixOS configuration";
+  description = "Bluefeed servers: NixOS configuration";
 
   inputs = {
     # NixOS stable release. Changing this line = moving to a new release.
@@ -13,26 +13,15 @@
   outputs = { self, nixpkgs, disko, ... }@inputs:
     let
       system = "x86_64-linux";
-      settings = import ./settings.nix;
+      lib = nixpkgs.lib;
       pkgs = nixpkgs.legacyPackages.${system};
 
-    in
-    {
-      # The server.
-      nixosConfigurations.server = nixpkgs.lib.nixosSystem {
-        inherit system;
-        specialArgs = { inherit inputs settings; };
-        modules = [
-          disko.nixosModules.disko
-          ./disk.nix
-          ./hardware-configuration.nix
-          ./configuration.nix
-          ./modules/app.nix
-        ];
-      };
+      # Every folder under hosts/ is one server; the folder name is its hostname.
+      hosts = lib.attrNames (lib.filterAttrs (_: type: type == "directory") (builtins.readDir ./hosts));
+      settingsFor = host: import ./hosts/${host}/settings.nix // { hostName = host; };
 
       # A tiny demo web app, for testing the deploy flow before the real app exists.
-      packages.${system}.demo-app = pkgs.writeShellApplication {
+      demoApp = settings: pkgs.writeShellApplication {
         name = settings.app.binary;
         runtimeInputs = [ pkgs.python3 ];
         text = ''
@@ -40,11 +29,32 @@
           exec python3 -m http.server "''${PORT:-8080}" --directory /tmp/www
         '';
       };
+    in
+    {
+      # One NixOS system per host. Shared modules + the host's own two files.
+      nixosConfigurations = lib.genAttrs hosts (host: lib.nixosSystem {
+        inherit system;
+        specialArgs = { inherit inputs; settings = settingsFor host; };
+        modules = [
+          disko.nixosModules.disko
+          ./modules/disk.nix
+          ./modules/base.nix
+          ./modules/app.nix
+          ./hosts/${host}/hardware-configuration.nix
+        ];
+      });
 
-      # Automated security test (tests/server-test.nix). Run: nix flake check
-      checks.${system}.server = import ./tests/server-test.nix {
-        inherit pkgs inputs settings;
-        demoApp = self.packages.${system}.demo-app;
-      };
+      # Demo app per host, e.g. .#bluefeed-server-demo-app
+      packages.${system} = lib.listToAttrs (map (host: {
+        name = "${host}-demo-app";
+        value = demoApp (settingsFor host);
+      }) hosts);
+
+      # Automated security test per host (tests/server-test.nix). Run: nix flake check
+      checks.${system} = lib.genAttrs hosts (host: import ./tests/server-test.nix {
+        inherit pkgs inputs;
+        settings = settingsFor host;
+        demoApp = self.packages.${system}."${host}-demo-app";
+      });
     };
 }

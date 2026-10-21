@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 # Deploy a new version of the app (step 7 of the guide), as the deploy user.
 #
-#   ./scripts/deploy-app.sh deploy@192.168.1.50 <app-flake>#<package>
+#   ./scripts/deploy-app.sh <server-name> deploy@<server-ip> <app-flake>#<package>
 #   e.g. test with the built-in demo app:
-#   ./scripts/deploy-app.sh deploy@192.168.1.50 .#demo-app
-#   or against the test VM:  NIX_SSHOPTS="-p 2222" ./scripts/deploy-app.sh deploy@localhost .#demo-app
+#   ./scripts/deploy-app.sh bluefeed-server deploy@192.168.1.50 .#bluefeed-server-demo-app
 #
 # Steps: build the app, `nix copy` it to the server (unsigned for now; the
 # deploy user is trusted, package signing is deferred), point the app's profile at
@@ -12,9 +11,11 @@
 #   ssh deploy@<ip> "nix-env -p /nix/var/nix/profiles/app/<app> --rollback && sudo systemctl restart <app>.service"
 set -euo pipefail
 cd "$(dirname "$0")/.."
-TARGET="${1:?usage: $0 deploy@<server-ip> <flake#package>}"
-REF="${2:?usage: $0 deploy@<server-ip> <flake#package>}"
-APP=$(nix eval --raw --file settings.nix app.name)
+USAGE="usage: $0 <server-name> deploy@<server-ip> <flake#package>"
+HOST="${1:?$USAGE}"
+TARGET="${2:?$USAGE}"
+REF="${3:?$USAGE}"
+APP=$(nix eval --raw --file "hosts/$HOST/settings.nix" app.name)
 SSH_PORT_OPT=()
 [ -n "${NIX_SSHOPTS:-}" ] && read -r -a SSH_PORT_OPT <<< "$NIX_SSHOPTS"
 

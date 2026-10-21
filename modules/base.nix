@@ -59,7 +59,7 @@ in
   # itself; a new kernel takes effect at the next reboot.
   system.autoUpgrade = {
     enable = true;
-    flake = "path:${inputs.self}#server";
+    flake = "path:${inputs.self}#${settings.hostName}";
     upgrade = false;
     flags = [
       "--override-input" "nixpkgs" "github:NixOS/nixpkgs/nixos-26.05"
