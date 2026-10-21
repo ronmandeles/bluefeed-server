@@ -19,7 +19,7 @@ in
 
   # Profile directory, owned by the deploy user so it can switch app versions.
   systemd.tmpfiles.rules = [
-    "d ${profileDir} 0755 ${settings.deploy.user} ${settings.deploy.user} -"
+    "d ${profileDir} 0755 ${settings.deploy.user} root -"
   ];
 
   systemd.services.${app.name} = {
