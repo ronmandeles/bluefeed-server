@@ -44,11 +44,19 @@
         ];
       });
 
-      # Demo app per host, e.g. .#bluefeed-server-demo-app
-      packages.${system} = lib.listToAttrs (map (host: {
-        name = "${host}-demo-app";
-        value = demoApp (settingsFor host);
-      }) hosts);
+      # Per host: a demo app (.#<host>-demo-app) and a self-installing USB
+      # image (.#<host>-installer-iso, see modules/installer-iso.nix).
+      packages.${system} = lib.listToAttrs (lib.concatMap (host: [
+        { name = "${host}-demo-app"; value = demoApp (settingsFor host); }
+        {
+          name = "${host}-installer-iso";
+          value = (lib.nixosSystem {
+            inherit system;
+            specialArgs = { target = self.nixosConfigurations.${host}; settings = settingsFor host; };
+            modules = [ ./modules/installer-iso.nix ];
+          }).config.system.build.isoImage;
+        }
+      ]) hosts);
 
       # Automated security test per host (tests/server-test.nix). Run: nix flake check
       checks.${system} = lib.genAttrs hosts (host: import ./tests/server-test.nix {

@@ -1,8 +1,9 @@
 # PLACEHOLDER — this file is overwritten automatically during installation.
 #
-# scripts/install.sh runs nixos-anywhere with --generate-hardware-config, which
-# detects the real server's hardware (disk controller, CPU, network card) and
-# writes the result here. Keep the generated version: it is part of the server's
+# scripts/install.sh (nixos-anywhere --generate-hardware-config) or the USB
+# installer from `make iso` (saves it as /etc/nixos/hardware-configuration.nix
+# on the server, copy it here) detects the real server's hardware (disk
+# controller, CPU, network card). Keep the generated version: it is part of the server's
 # configuration from then on.
 { modulesPath, ... }:
 {
