@@ -8,6 +8,8 @@ HOST ?= bluefeed-server
 .PHONY: iso check
 
 iso:
+	@! grep -q REPLACE_WITH hosts/$(HOST)/settings.nix || \
+	  { echo "hosts/$(HOST)/settings.nix still has placeholder SSH keys; fill them in first."; exit 1; }
 	nix build .#$(HOST)-installer-iso -o result-iso-$(HOST)
 	@echo
 	@echo "USB image: $$(ls result-iso-$(HOST)/iso/*.iso)"
